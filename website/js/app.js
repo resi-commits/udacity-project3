@@ -4,19 +4,19 @@ const apiKey = '&appid=fedf4384c03e6130b3fd1de93c0832b8'
 
 // Create a new date instance dynamically with JS
 let d = new Date();
-let newDate = d.getDate()+'.'+ d.getMonth()+'.'+ d.getFullYear();
+let newDate = d.getDate()+'.'+ (d.getMonth()+1)+'.'+ d.getFullYear();
 
 
 let data = [];
 // async function to make a GET request to the openweathermap using the zip code
 const getWeather = async (event)=>{
-  console.log(event)
+  // console.log(event)
   let zip = `${document.getElementById('zip').value},de`
   const units = '&units=metric'
   const res = await fetch(baseURL+zip+units+apiKey)
   try {
     data = await res.json();
-    console.log(data);
+    // console.log(data);
   } catch(error) {
     console.log("error", error);
   }
@@ -33,10 +33,10 @@ const storeData = async (url = '', data = {})=>{
   body: JSON.stringify(data),
 });
   try {
-    console.log(data)
-    console.log(res)
+    // console.log(data)
+    // console.log(res)
     const newData = await res.json();
-    console.log(newData)
+    // console.log(newData)
     return newData;
   } catch(error) {
     console.log("error", error);
@@ -44,11 +44,18 @@ const storeData = async (url = '', data = {})=>{
 }
 
 // async function to get all data stored in the projectData
-const getData = async (url = '')=>{
-  const res = await fetch(url)
+const updateUI = async ()=>{
+  const res = await fetch('/all');
   try {
-    const data = await res.json();
-    return data;
+    const allData = await res.json();
+    document.getElementById('date').innerHTML = allData.date;
+    document.getElementById('content').innerHTML = `Today you are feeling like this: ${allData.user}`
+    document.getElementById('icon').style.backgroundImage = `url("http://openweathermap.org/img/wn/${allData.icon}@2x.png")`
+    document.getElementById('desc').innerHTML = allData.desc
+    document.getElementById('name').innerHTML = allData.name
+    document.getElementById('temp').innerHTML = `Current temperature ${allData.temp}°C`
+    document.getElementById('feels').innerHTML = `Feels like ${allData.feels}°C`
+    document.getElementById('date').innerHTML = `Today is the ${allData.date}`
   } catch(error) {
     console.log("error", error);
   }
@@ -59,8 +66,7 @@ const getData = async (url = '')=>{
 document.getElementById('generate').addEventListener('click', performAction);
 
 function performAction(event){
-  getWeather(event).then(function(){
-    console.log(data)
+  getWeather(event).then(()=>{
     storeData('/addData', { 
       temp: data.main.temp, 
       feels: data.main.feels_like,
@@ -71,25 +77,8 @@ function performAction(event){
       user: document.getElementById('feelings').value
     });
   })
-  .then(function(){
-    getData('all').then(function(result){
-      const lastUserInput = result[result.length-1]
-      document.getElementById('content').textContent = `Today you are feeling like this: ${lastUserInput.user}`
-      // const img = document.createElement('img')
-      // img.id = lastUserInput.icon
-      // img.src= `url("http://openweathermap.org/img/wn/${lastUserInput.icon}@2x.png")`
-      // img.width="200px"
-      // img.height="200px"
-      // document.getElementById('icon').appendChild = img
-      document.getElementById('icon').style.backgroundImage = `url("http://openweathermap.org/img/wn/${lastUserInput.icon}@2x.png")`
-      document.getElementById('desc').textContent = lastUserInput.desc
-      document.getElementById('name').textContent = lastUserInput.name
-      document.getElementById('temp').textContent = `Current temperature ${lastUserInput.temp}°C`
-      document.getElementById('feels').textContent = `Feels like ${lastUserInput.feels}°C`
-      document.getElementById('date').textContent = `Today is the ${lastUserInput.date}`
-      console.log(result.length)
-      console.log(result[result.length-1])
-    })
+  .then(()=>{
+    updateUI();
   })
 }
   
